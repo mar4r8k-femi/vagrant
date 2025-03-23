@@ -1,0 +1,14 @@
+inputSet:
+  name: PR Input
+  identifier: PR_Input
+  orgIdentifier: sandbox
+  projectIdentifier: Femi_Sandbox
+  pipeline:
+    identifier: Vagrant_CI
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>

@@ -44,15 +44,31 @@ pipeline:
                     command: |-
                       apt-get update -y
                       apt -y install libarchive-tools
-              - step:
-                  type: RunTests
-                  name: Run Tests
-                  identifier: run_tests
-                  spec:
-                    language: Ruby
-                    buildTool: Rspec
-                    testGlobs: "**/test/unit/**/*_test.rb"
-                    runOnlySelectedTests: true
-                    enableTestSplitting: true
-                    preCommand: bundle install
+              - parallel:
+                  - step:
+                      type: RunTests
+                      name: Run Tests
+                      identifier: run_tests
+                      spec:
+                        language: Ruby
+                        buildTool: Rspec
+                        testGlobs: "**/test/unit/**/*_test.rb"
+                        runOnlySelectedTests: true
+                        enableTestSplitting: true
+                        preCommand: bundle install
+                  - step:
+                      type: Run
+                      name: Run RSpec Tests
+                      identifier: run_rspec_tests
+                      spec:
+                        shell: Sh
+                        command: |
+                          bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3
+                          mkdir /harness/rspec
+                          bundle exec rspec --format progress --format RspecJunitFormatter -o /harness/rspec/rspec.xml
+                      reports:
+                        type: JUnit
+                        spec:
+                          paths:
+                            - /harness/rspec/rspec.xml
         description: ""

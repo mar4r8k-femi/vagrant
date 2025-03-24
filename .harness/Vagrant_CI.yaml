@@ -7,57 +7,206 @@ pipeline:
   properties:
     ci:
       codebase:
-        connectorRef: femigithub
-        repoName: vagrant
+        connectorRef: vagrantfork
         build: <+input>
   stages:
-    - stage:
-        strategy:
-          parallelism: 2
-        name: test
-        identifier: test
-        type: CI
-        spec:
-          cloneCodebase: true
-          platform:
-            os: Linux
-            arch: Amd64
-          runtime:
-            type: Cloud
-            spec: {}
-          execution:
-            steps:
-              - step:
-                  type: Action
-                  name: Setup Ruby
-                  identifier: setup_ruby
-                  spec:
-                    uses: ruby/setup-ruby@v1.152.0
-                    with:
-                      ruby-version: "3.2"
-              - step:
-                  type: Run
-                  name: Dependencies
-                  identifier: dependencies
-                  spec:
-                    shell: Sh
-                    command: |-
-                      apt-get update -y
-                      apt -y install libarchive-tools
-              - step:
-                  type: RunTests
-                  name: Run Tests
-                  identifier: run_tests
-                  spec:
-                    language: Ruby
-                    buildTool: Rspec
-                    testGlobs: "**/test/unit/**/*_test.rb"
-                    runOnlySelectedTests: true
-                    preCommand: bundle install
-                    reports:
-                      type: JUnit
+    - parallel:
+        - stage:
+            name: TI
+            identifier: TI
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: true
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: Download Script
+                      identifier: Download_Script
                       spec:
-                        paths:
-                          - "**/*.xml"
-                    enableTestSplitting: true
-        description: ""
+                        shell: Sh
+                        command: |-
+                          wget https://elasticbeanstalk-us-east-1-734046833946.s3.amazonaws.com/harness-add-rows-ti.py
+                          chmod +x harness-add-rows-ti.py
+                  - step:
+                      type: Run
+                      name: Install dependencies
+                      identifier: Install_dependencies
+                      spec:
+                        shell: Sh
+                        command: pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib gspread
+                  - step:
+                      type: Action
+                      name: Setup Ruby
+                      identifier: setup_ruby
+                      spec:
+                        uses: ruby/setup-ruby@v1.152.0
+                        with:
+                          ruby-version: 3.2.2
+                  - step:
+                      type: Run
+                      name: Install Dependencies
+                      identifier: Run_1
+                      spec:
+                        shell: Sh
+                        command: |-
+                          sudo apt update
+                          sudo apt -y install libarchive-tools
+                  - step:
+                      type: Run
+                      name: Save Time
+                      identifier: Save_Time
+                      spec:
+                        shell: Python
+                        command: |
+                          import datetime
+
+                          def save_current_time_to_file(filename):
+                              current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                              with open(filename, 'w') as file:
+                                  file.write(current_time)
+
+                          if __name__ == "__main__":
+                              filename = "time_record.txt"
+                              save_current_time_to_file(filename)
+                              print("Current time has been saved to", filename)
+                  - step:
+                      type: Test
+                      name: Test_1
+                      identifier: Test_1
+                      spec:
+                        shell: Sh
+                        command: |-
+                          set -x
+                          bundle exec rake test:unit
+                        intelligenceMode: true
+                      failureStrategies:
+                        - onFailure:
+                            errors:
+                              - AllErrors
+                            action:
+                              type: Ignore
+                  - step:
+                      type: Run
+                      name: Upload Duration
+                      identifier: Upload_Duration
+                      spec:
+                        shell: Sh
+                        command: python3 harness-add-rows-ti.py
+                        envVariables:
+                          BASE64_GCP_KEY: <+secrets.getValue("BASE64_GCP_KEY")>
+                          WORKSHEET_INDEX: "0"
+                          SPREADSHEET_ID: 19U-8YSOPv8KTGmN-kihaT4plRd_McGdNEIeqEri8JlQ
+                      when:
+                        stageStatus: All
+        - stage:
+            name: No TI
+            identifier: No_TI
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: true
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: Download Script
+                      identifier: Download_Script
+                      spec:
+                        shell: Sh
+                        command: |-
+                          wget https://elasticbeanstalk-us-east-1-734046833946.s3.amazonaws.com/harness-add-rows-ti.py
+                          chmod +x harness-add-rows-ti.py
+                  - step:
+                      type: Run
+                      name: Install dependencies
+                      identifier: Install_dependencies
+                      spec:
+                        shell: Sh
+                        command: pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib gspread
+                  - step:
+                      type: Action
+                      name: Setup Ruby
+                      identifier: setup_ruby
+                      spec:
+                        uses: ruby/setup-ruby@v1.152.0
+                        with:
+                          ruby-version: 3.2.2
+                  - step:
+                      type: Run
+                      name: Install Dependencies
+                      identifier: Run_1
+                      spec:
+                        shell: Sh
+                        command: |-
+                          sudo apt update
+                          sudo apt -y install libarchive-tools
+                  - step:
+                      type: Run
+                      name: Save Time
+                      identifier: Save_Time
+                      spec:
+                        shell: Python
+                        command: |
+                          import datetime
+
+                          def save_current_time_to_file(filename):
+                              current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                              with open(filename, 'w') as file:
+                                  file.write(current_time)
+
+                          if __name__ == "__main__":
+                              filename = "time_record.txt"
+                              save_current_time_to_file(filename)
+                              print("Current time has been saved to", filename)
+                  - step:
+                      type: Run
+                      name: TestRun
+                      identifier: Run_2
+                      spec:
+                        shell: Sh
+                        command: |-
+                          set -x
+                          bundle install
+                          bundle exec rake test:unit
+                        reports:
+                          type: JUnit
+                          spec:
+                            paths:
+                              - "**/*.xml"
+                      failureStrategies:
+                        - onFailure:
+                            errors:
+                              - AllErrors
+                            action:
+                              type: Ignore
+                  - step:
+                      type: Run
+                      name: Upload Duration
+                      identifier: Upload_Duration
+                      spec:
+                        shell: Sh
+                        command: python3 harness-add-rows-ti.py
+                        envVariables:
+                          BASE64_GCP_KEY: <+secrets.getValue("BASE64_GCP_KEY")>
+                          WORKSHEET_INDEX: "1"
+                          SPREADSHEET_ID: 19U-8YSOPv8KTGmN-kihaT4plRd_McGdNEIeqEri8JlQ
+                      when:
+                        stageStatus: All

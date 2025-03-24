@@ -92,4 +92,10 @@ pipeline:
                             paths:
                               - "**/*.xml"
                         intelligenceMode: true
+                        enableTestSplitting: true
+          caching:
+            enabled: true
+            paths: []
+          buildIntelligence:
+            enabled: true
         description: ""

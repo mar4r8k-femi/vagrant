@@ -44,65 +44,20 @@ pipeline:
                     command: |-
                       apt-get update -y
                       apt -y install libarchive-tools
-              - parallel:
-                  - step:
-                      type: RunTests
-                      name: Run Tests
-                      identifier: run_tests
+              - step:
+                  type: RunTests
+                  name: Run Tests
+                  identifier: run_tests
+                  spec:
+                    language: Ruby
+                    buildTool: Rspec
+                    testGlobs: "**/test/unit/**/*_test.rb"
+                    runOnlySelectedTests: true
+                    preCommand: bundle install
+                    reports:
+                      type: JUnit
                       spec:
-                        language: Ruby
-                        buildTool: Rspec
-                        testGlobs: "**/spec/**/*_spec.rb"
-                        runOnlySelectedTests: true
-                        preCommand: |
-                          bundle install
-                          bundle exec rake test --junit
-                        reports:
-                          type: JUnit
-                          spec:
-                            paths:
-                              - "**/*.xml"
-                        enableTestSplitting: true
-                      strategy:
-                        parallelism: 2
-                  - step:
-                      type: Run
-                      name: Run RSpec Tests
-                      identifier: run_rspec_tests
-                      spec:
-                        shell: Sh
-                        command: |
-                          bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3
-                          mkdir /harness/rspec
-                          bundle exec rspec --format progress --format RspecJunitFormatter -o /harness/rspec/rspec.xml
-                      reports:
-                        type: JUnit
-                        spec:
-                          paths:
-                            - /harness/rspec/rspec.xml
-                  - step:
-                      type: Test
-                      name: Test Intelligence
-                      identifier: Test_Intelligence
-                      spec:
-                        shell: Sh
-                        command: |
-                          bundle install
-                          bundle exec rake test --junit
-                        reports:
-                          type: JUnit
-                          spec:
-                            paths:
-                              - "**/*.xml"
-                        intelligenceMode: true
-                        enableTestSplitting: true
-                        globs:
-                          - "**/spec/**/*_spec.rb"
-                      strategy:
-                        parallelism: 2
-          caching:
-            enabled: true
-            paths: []
-          buildIntelligence:
-            enabled: true
+                        paths:
+                          - "**/*.xml"
+                    enableTestSplitting: true
         description: ""

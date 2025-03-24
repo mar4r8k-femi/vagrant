@@ -63,6 +63,8 @@ pipeline:
                             paths:
                               - "**/*.xml"
                         enableTestSplitting: true
+                      strategy:
+                        parallelism: 2
                   - step:
                       type: Run
                       name: Run RSpec Tests
@@ -93,8 +95,11 @@ pipeline:
                             paths:
                               - "**/*.xml"
                         intelligenceMode: true
+                        enableTestSplitting: true
                         globs:
                           - "**/spec/**/*_spec.rb"
+                      strategy:
+                        parallelism: 2
           caching:
             enabled: true
             paths: []

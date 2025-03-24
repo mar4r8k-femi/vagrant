@@ -54,8 +54,15 @@ pipeline:
                         buildTool: Rspec
                         testGlobs: "**/test/unit/**/*_test.rb"
                         runOnlySelectedTests: true
+                        preCommand: |
+                          bundle install
+                          bundle exec rake test --junit
+                        reports:
+                          type: JUnit
+                          spec:
+                            paths:
+                              - "**/*.xml"
                         enableTestSplitting: true
-                        preCommand: bundle install
                   - step:
                       type: Run
                       name: Run RSpec Tests

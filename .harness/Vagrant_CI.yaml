@@ -52,7 +52,6 @@ pipeline:
                       spec:
                         language: Ruby
                         buildTool: Rspec
-                        testGlobs: "**/test/unit/**/*_test.rb"
                         runOnlySelectedTests: true
                         preCommand: |
                           bundle install
@@ -78,4 +77,19 @@ pipeline:
                         spec:
                           paths:
                             - /harness/rspec/rspec.xml
+                  - step:
+                      type: Test
+                      name: Test Intelligence
+                      identifier: Test_Intelligence
+                      spec:
+                        shell: Sh
+                        command: |
+                          bundle install
+                          bundle exec rake test --junit
+                        reports:
+                          type: JUnit
+                          spec:
+                            paths:
+                              - "**/*.xml"
+                        intelligenceMode: true
         description: ""

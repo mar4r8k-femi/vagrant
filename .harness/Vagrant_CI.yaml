@@ -52,6 +52,7 @@ pipeline:
                       spec:
                         language: Ruby
                         buildTool: Rspec
+                        testGlobs: "**/spec/**/*_spec.rb"
                         runOnlySelectedTests: true
                         preCommand: |
                           bundle install
@@ -92,7 +93,8 @@ pipeline:
                             paths:
                               - "**/*.xml"
                         intelligenceMode: true
-                        enableTestSplitting: true
+                        globs:
+                          - "**/spec/**/*_spec.rb"
           caching:
             enabled: true
             paths: []

@@ -55,6 +55,22 @@ pipeline:
                     command: |-
                       set -x
                       bundle exec rake test:unit
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - "**/*.xml"
                     intelligenceMode: true
                   strategy:
                     parallelism: 5
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: ManualIntervention
+                          spec:
+                            timeout: 1d
+                            onTimeout:
+                              action:
+                                type: Abort

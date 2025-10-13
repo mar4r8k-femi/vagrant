@@ -56,11 +56,5 @@ pipeline:
                       set -x
                       bundle exec rake test:unit
                     intelligenceMode: true
-                  failureStrategies:
-                    - onFailure:
-                        errors:
-                          - AllErrors
-                        action:
-                          type: Ignore
                   strategy:
                     parallelism: 5

@@ -1,7 +1,7 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: BUSL-1.1
 
-# Example change v1.1 - car guru
+# Example change v1.2 - car guru
 
 module Vagrant
   module Plugin
